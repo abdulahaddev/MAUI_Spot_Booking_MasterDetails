@@ -1,0 +1,114 @@
+﻿@page "/"
+@using MAUI_MasterDetails.Model;
+@using MAUI_MasterDetails.Service;
+
+@inject IJSRuntime JSRuntime
+@inject BookingService bookingService
+@inject NavigationManager navigationManager
+
+@{
+    string API_URL = "http://localhost:5047/";
+}
+
+<h1>MAUI MASTER_DETAILS</h1>
+
+<div class="d-flex justify-content-end mb-2">
+    <a class="btn btn-primary btm-sm" href="create">Add New</a>
+</div>
+@if (clients is null)
+{
+    <div class="d-flex justify-content-center mt-5">
+        <img src="/Images/loading.gif" />
+    </div>
+}
+@if (clients is not null)
+{
+    @if (clients.Count() == 0)
+    {
+        <div class="alert alert-info">Booking Data Not Found !</div>
+        return;
+    }
+    @foreach (var client in clients)
+    {
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <div>
+                    <img src="@API_URL/Images/@client.Picture" width="32" class="mr-2" />
+                    Name: @client.ClientName
+                </div>
+                <div>
+                    <a class="btn btn-warning" @onclick="@(()=> ConfirmDelete(client.ClientId))">Delete</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-striped table-sm">
+                    @if (client.BookingEntries is not null)
+                    {
+                        @if (client.BookingEntries?.Count() == 0)
+                        {
+                            <div class="alert alert-info">Spot Data Not Found !</div>
+                        }
+                        else
+                        {
+                            <thead>
+                                <tr>
+                                    <th>SpotId</th>
+                                    <th>SpotName</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (client.BookingEntries is not null)
+                                {
+                                    foreach (var singleEntry in client.BookingEntries)
+                                    {
+                                        <tr>
+                                            <td>@singleEntry.SpotId</td>
+                                            <td>@singleEntry?.Spot?.SpotName</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        }
+                    }
+                </table>
+            </div>
+        </div>
+    }
+}
+
+
+@code {
+    List<Client> clients { get; set; } = new List<Client>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    async Task LoadData()
+    {
+        clients = await bookingService.GetClients();
+    }
+
+    private async Task ConfirmDelete(int clientId)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this record?");
+        if (confirmed)
+        {
+            await Delete(clientId);
+        }
+    }
+
+    async Task Delete(int clientId)
+    {
+        var isSuccess = await bookingService.DeleteClient(clientId);
+
+        if (isSuccess)
+        {
+            clients.RemoveAll(c => c.ClientId == clientId);
+            StateHasChanged();
+        }
+        else
+        {
+        }
+    }
+}

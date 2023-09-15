@@ -1,0 +1,112 @@
+﻿@using MAUI_MasterDetails.Model;
+@using MAUI_MasterDetails.ViewModel;
+
+
+<EditForm Model="Client" OnValidSubmit="OnValidSubmit" enctype="multipart/form-data">
+    <DataAnnotationsValidator />
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group mb-2">
+                <label for="name">Name</label>
+                <div>
+                    <InputText class="form-control" id="name" @bind-Value="@Client.ClientName" />
+                    <ValidationMessage For="@(() => Client.ClientName)" />
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="name">Date of Birth</label>
+                <div>
+                    <InputDate class="form-control" id="name" @bind-Value="@Client.BirthDate" />
+                    <ValidationMessage For="@(() => Client.BirthDate)" />
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="name">Phone No</label>
+                <div>
+                    <InputNumber class="form-control" id="name" @bind-Value="@Client.PhoneNo" />
+                    <ValidationMessage For="@(() => Client.PhoneNo)" />
+                </div>
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="name">Picture</label>
+                <div>
+                    <InputText hidden class="form-control" id="name" @bind-Value="@Client.Picture" />
+                    <InputFile class="form-control" OnChange="HandleFileSelection" />
+                    <ValidationMessage For="@(() => Client.Picture)" />
+                </div>
+            </div>
+
+            <div class="form-check">
+                <InputCheckbox class="form-check-input" name="maritalStatus" id="maritalStatus" @bind-Value="Client.MaritalStatus" />
+                <label class="form-check-label" for="maritalStatus">
+                    Married
+                </label>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3 class="text-center">Select Spot</h3>
+            <div class="spotContainer">
+                @for (int i = 0; i < Client.SpotList.Count; i++)
+                {
+                    int index = i;
+
+                    <div class="row form-group mt-2">
+                        <div class="col-10">
+                            <InputSelect @bind-Value="@Client.SpotList[index].SpotId" class="form-control">
+                                @if (tourSpots is not null)
+                                {
+                                    <option selected disabled>---Select---</option>
+                                    @foreach (var spot in tourSpots)
+                                    {
+                                        <option value="@spot.SpotId">@spot.SpotName</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-2">
+                            <button type="button" @onclick="@(() => Client.SpotList.RemoveAt(index))" class="btn btn-danger btn-sm">X</button>
+                        </div>
+                    </div>
+                }
+                <ValidationMessage For="@(() => Client.SpotList)" />
+            </div>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="button" @onclick="( ()=> Client.SpotList.Add(new Spot()) )" class="btn btn-dark"><span class="oi oi-plus" aria-hidden="true"/></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="d-grid col-6 mx-auto">
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+        </div>
+    </div>
+
+</EditForm>
+
+@code {
+    [Parameter] public ClientVM Client { get; set; }
+    [Parameter] public List<Spot> tourSpots { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public EventCallback<IBrowserFile> SelectedFileChanged { get; set; }
+
+    public IBrowserFile selectedFile { get; set; }
+
+    public async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        if (e.File is not null)
+        {
+            selectedFile = e.File;
+            Client.Picture = selectedFile.Name;
+            await SelectedFileChanged.InvokeAsync(selectedFile);
+        }
+    }
+}
