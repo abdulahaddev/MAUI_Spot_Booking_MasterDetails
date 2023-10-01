@@ -1,0 +1,88 @@
+﻿@page "/edit/{ClientId:int}"
+
+@using MAUI_MasterDetails.Model;
+@using MAUI_MasterDetails.Service;
+@using MAUI_MasterDetails.ViewModel;
+@using System.Text.Json;
+@using System.Net.Http.Headers;
+
+@inject BookingService bookingService
+@inject NavigationManager navigationManager
+
+<h3 class="text-center">Update @client.ClientName</h3>
+<CustomerForm Client="client" OnValidSubmit="OnValidSubmit" tourSpots="tourSpots" SelectedFileChanged="HandleFileChanged"></CustomerForm>
+<div class="d-flex mt-4">
+    <a class="btn btn-link" href="/">Back to list</a>
+</div>
+
+@code {
+    [Parameter]
+    public int ClientId { get; set; }
+
+    ClientVM client = new ClientVM();
+    List<Spot> tourSpots = new List<Spot>();
+
+    private IBrowserFile selectedFile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    async Task LoadData()
+    {
+        selectedFile = null;
+
+        Client clientData = await bookingService.GetClientById(ClientId);
+
+        this.client = new ClientVM
+        {
+            ClientId = clientData.ClientId,
+            ClientName = clientData.ClientName,
+            BirthDate = clientData.BirthDate,
+            PhoneNo = clientData.PhoneNo,
+            MaritalStatus = clientData.MaritalStatus,
+            SpotList = clientData.BookingEntries.Select(x => new Spot{SpotId = x.SpotId}).ToList()
+        };
+
+        tourSpots = (await bookingService.GetSpots()).ToList();
+    }
+
+    private void HandleFileChanged(IBrowserFile file)
+    {
+        selectedFile = file;
+        Console.WriteLine(selectedFile.Name);
+    }
+
+    private async Task OnValidSubmit()
+    {
+        var formData = new MultipartFormDataContent();
+
+        var clientData = new StringContent(JsonSerializer.Serialize(client));
+        formData.Add(clientData, "ClientInfo");
+
+        int MAX_FILE_SIZE = 10485760;
+
+        if (selectedFile is not null)
+        {
+            using (var streamContent = new StreamContent(selectedFile.OpenReadStream(MAX_FILE_SIZE)))
+            {
+                var fileContent = new ByteArrayContent(await streamContent.ReadAsByteArrayAsync());
+                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+
+                formData.Add(fileContent, "PictureFile", selectedFile.Name);                    
+            }
+        }
+
+        var response = await bookingService.UpdateBooking(formData);
+
+        if (response.IsSuccessStatusCode)
+        {     
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            
+        }
+
+    }
+}

@@ -6,6 +6,8 @@ namespace MAUI_MasterDetails.ViewModel;
 
 public class ClientVM
 {
+    public int ClientId { get; set; }
+
     [Required(ErrorMessage = "Name is required")]
     public string? ClientName { get; set; }
 

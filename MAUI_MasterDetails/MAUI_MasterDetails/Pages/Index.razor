@@ -7,7 +7,7 @@
 @inject NavigationManager navigationManager
 
 @{
-    string API_URL = "http://localhost:5047/";
+    string API_URL = "http://localhost:5047";
 }
 
 <h1>MAUI MASTER_DETAILS</h1>
@@ -37,6 +37,7 @@
                     Name: @client.ClientName
                 </div>
                 <div>
+                    <a class="btn btn-success" href="/edit/@client.ClientId">Edit</a>
                     <a class="btn btn-warning" @onclick="@(()=> ConfirmDelete(client.ClientId))">Delete</a>
                 </div>
             </div>

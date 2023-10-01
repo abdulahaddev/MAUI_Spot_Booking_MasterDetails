@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.WebView.Maui;
-using MAUI_MasterDetails.Data;
-using MAUI_MasterDetails.Service;
+﻿using MAUI_MasterDetails.Service;
 
 namespace MAUI_MasterDetails;
 

@@ -24,6 +24,14 @@ public class BookingService
         return data;
     }
 
+    public async Task<Client> GetClientById(int clientId)
+    {
+        var url = BASE_URL + "GetClientById/" + clientId;
+        var data = await HttpClientInstance.GetFromJsonAsync<Client>(url);
+
+        return data;
+    }
+
     public async Task<bool> DeleteClient(int clientId)
     {
         var url = BASE_URL + "Delete/" + clientId;
@@ -37,6 +45,18 @@ public class BookingService
         try
         {
             return await HttpClientInstance.PostAsync(BASE_URL, data);
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    public async Task<HttpResponseMessage> UpdateBooking(MultipartFormDataContent data)
+    {
+        try
+        {
+            return await HttpClientInstance.PutAsync(BASE_URL, data);
         }
         catch (Exception ex)
         {
